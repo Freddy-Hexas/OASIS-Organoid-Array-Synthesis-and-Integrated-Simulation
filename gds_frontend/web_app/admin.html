@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>批量任务 · GDS Workbench</title>
+  <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="brand-copy"><strong>GDS WORKBENCH</strong><span>批量任务控制台</span></div>
+    <div class="topbar-spacer"></div>
+    <span id="queueTop" class="queue-indicator">读取队列…</span>
+    <a class="admin-link" href="/">返回单个 case ↗</a>
+  </header>
+  <main class="admin-shell">
+    <div class="admin-heading">
+      <div><span class="eyebrow">BATCH OPERATIONS / ADMIN</span><h1>统一参数，批量运行</h1><p>从 data 输入目录选择多个 GDS。服务器按工作线程数并行运行，其余排队；每个文件仍是独立任务，结果可单独打开。</p></div>
+      <button id="refreshAdmin" class="admin-secondary" type="button">刷新文件与状态</button>
+    </div>
+    <div class="admin-grid">
+      <section class="panel admin-files">
+        <div class="admin-section-head"><div><span class="eyebrow">01 / CASES</span><h2>选择任务</h2></div><strong id="selectedCount">0 已选择</strong></div>
+        <div class="admin-file-tools"><button id="selectAll" type="button">选择所有可运行</button><button id="clearAll" type="button">清空</button><span id="inputRoot">扫描目录…</span></div>
+        <div id="adminFileList" class="admin-file-list" aria-label="批量运行的 GDS 文件"></div>
+        <p class="admin-note">支撑层默认使用服务端自动建议。未知来源的 GDS，请逐个确认支撑材料图层；每行可以手动指定该 GDS 的图层。</p>
+      </section>
+      <section class="panel admin-params">
+        <div class="admin-section-head"><div><span class="eyebrow">02 / SHARED RULES</span><h2>本批统一参数</h2></div></div>
+        <div class="admin-fields">
+          <label>布线目标<select id="adminMode"><option value="four_side_pads">连接四边 Pad</option><option value="attached_islands">仅几何终端试布线</option></select></label>
+          <label>电极直径 <span>μm</span><input id="adminElectrode" type="number" step="any" value="30"></label>
+          <label>最小电极中心距 <span>mm</span><input id="adminCenterSpacing" type="number" step="any" value="0.07"></label>
+          <label>电极中心允许半径 <span>mm</span><input id="adminRegionRadius" type="number" step="any" value="3"></label>
+          <label>导线宽度 <span>μm</span><input id="adminWire" type="number" step="any" value="5"></label>
+          <label>网络间距 <span>μm</span><input id="adminSpacing" type="number" step="any" value="4"></label>
+          <label>支撑余量 <span>μm</span><input id="adminMargin" type="number" step="any" value="4"></label>
+        </div>
+        <p class="admin-note">没有固定工艺下限：间距与支撑余量可设为 0，尺寸须大于 0。圆岛间距随网络间距变化；求解及检查使用本批规则，0 间距仍须避免短接。</p>
+        <div id="adminPadFields" class="admin-pad-fields">
+          <p class="admin-note">半径默认 3 mm（直径 6 mm）；每个 GDS 按自己的几何圆心限制电极中心。类器官直径 2–3 mm 可填 1–1.5 mm。走线仍可沿结构向外连接 Pad。</p>
+          <h3>四边 Pad 尺寸参考</h3>
+          <div class="admin-fields">
+            <label>起始外框边长 <span>mm</span><input id="adminFrame" type="number" step="any" value="32"></label>
+            <label>Pad 沿边宽度 <span>mm</span><input id="adminPadWidth" type="number" step="any" value="0.5"></label>
+            <label>Pad 径向长度 <span>mm</span><input id="adminPadLength" type="number" step="any" value="3"></label>
+            <label>Pad 中心节距 <span>mm</span><input id="adminPadPitch" type="number" step="any" value="1"></label>
+            <label>数量增加时<select id="adminPadSizing"><option value="expand_frame">保留 Pad 尺寸，自动扩框</option><option value="compact_then_expand">先缩小到下限，再扩框</option></select></label>
+            <label>最小 Pad 沿边宽度 <span>mm</span><input id="adminMinPadWidth" type="number" step="any" value="0.5"></label>
+            <label>最小 Pad 径向长度 <span>mm</span><input id="adminMinPadLength" type="number" step="any" value="3"></label>
+          </div>
+          <p class="admin-note">Pad 数量等于接通的电极数，每边连续排列。允许缩小时，将最小宽/长设为工艺允许的下限；下限等于参考尺寸时只扩框。报告显示本次实际尺寸、节距与外框。</p>
+        </div>
+        <div id="adminOutletFields" class="admin-outlet-fields" hidden>
+          <label>几何终端类型<select id="adminOutlet"><option value="auto_geometry">自动识别宽区与开放末端</option><option value="collector">仅宽区接口</option><option value="open_tips">仅开放末端</option></select></label>
+          <label>宽区识别阈值 <span>μm</span><input id="adminCollector" type="number" step="any" value="25"></label>
+        </div>
+        <p class="admin-note">同一 GDS 运行中不能再次入队。批次先全部校验，通过后一起提交；若任一文件图层或参数无效，本批不会入队。</p>
+        <button id="submitBatch" class="primary-button" type="button" disabled>批量提交所选任务 ↗</button>
+        <p id="submitMessage" class="admin-message" role="status" aria-live="polite">请选择至少一个可运行的 GDS。</p>
+      </section>
+    </div>
+    <section class="panel admin-results">
+      <div class="admin-section-head"><div><span class="eyebrow">03 / QUEUE & RESULTS</span><h2>运行与结果</h2></div><span id="queueSummary">—</span></div>
+      <div id="adminJobs" class="admin-job-list"></div>
+    </section>
+  </main>
+  <script src="/admin.js" defer></script>
+</body>
+</html>

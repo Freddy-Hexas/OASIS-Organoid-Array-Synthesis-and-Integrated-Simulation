@@ -1,0 +1,15 @@
+# Generated output, local inputs, and interpreter environments.
+outputs/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+Thumbs.db
+.env
+.env.*
+data/local/

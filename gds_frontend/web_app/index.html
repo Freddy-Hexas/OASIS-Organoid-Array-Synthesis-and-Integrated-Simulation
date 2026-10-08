@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>GDS 结构与布线工作台</title>
+  <link rel="stylesheet" href="/app.css">
+  <link rel="stylesheet" href="/distribution.css">
+  <link rel="stylesheet" href="/vendor/katex/katex.min.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="brand-copy"><strong>GDS WORKBENCH</strong><span>柔性电极 · 几何前端</span></div>
+    <div class="topbar-spacer"></div>
+    <span id="queueIndicator" class="queue-indicator" aria-live="polite">运行 — · 排队 —</span>
+    <a class="admin-link" href="/admin">批量任务 / Admin ↗</a>
+    <div class="root-chip"><span class="live-dot"></span><span id="rootPath">连接固定目录…</span></div>
+    <button id="refreshButton" class="icon-button" type="button" title="刷新文件列表" aria-label="刷新文件列表">↻</button>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar" aria-label="GDS 文件列表">
+      <div class="sidebar-heading">
+        <div><span class="eyebrow">CASE LIBRARY</span><h1>结构案例</h1></div>
+        <span id="fileCount" class="count-pill">—</span>
+      </div>
+      <p class="sidebar-hint">选择一个 case，查看从原始 GDS 到电极与布线的每一步。</p>
+      <label class="search-box"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="搜索文件名或路径" autocomplete="off"><kbd>/</kbd></label>
+      <div id="fileList" class="file-list" role="listbox" aria-label="每份 GDS 对应一个任务"></div>
+      <div class="sidebar-footer"><span class="muted-label">自动扫描</span><span id="lastScan">—</span></div>
+    </aside>
+
+    <section class="main-column">
+      <div class="page-heading">
+        <div><span class="eyebrow">GEOMETRY / ROUTING</span><h2 id="selectedTitle">选择一个 GDS 开始</h2><p id="selectedSubtitle">从左侧固定目录中选择文件，查看结构和试布线条件。</p></div>
+        <div id="fileState" class="state-pill">等待选择</div>
+      </div>
+
+      <section class="panel result-overview" aria-labelledby="overviewTitle">
+        <div class="result-lead">
+          <span class="eyebrow" id="overviewTitle">当前 CASE · 已布置电极</span>
+          <div class="electrode-count"><strong id="electrodeHeroCount">—</strong><span>个电极</span></div>
+          <p id="electrodeHeroDetail">选择结构并运行；完整 Pad 模式只统计 GDS 回读确认连接到专属 Pad 的电极。</p>
+        </div>
+        <div class="overview-facts">
+          <div><span>最小电极中心距</span><strong id="overviewSpacing">—</strong></div>
+          <div><span>允许接出窗口</span><strong id="overviewExitWindow">—</strong></div>
+          <div><span>外端窗口已用 / 识别</span><strong id="overviewPortCoverage">—</strong></div>
+          <div><span>当前锚点域上界 U</span><strong id="overviewUpper">—</strong></div>
+          <div><span>导出 GDS 检查</span><strong id="overviewAudit">—</strong></div>
+        </div>
+      </section>
+
+      <section class="stage-section" aria-labelledby="stageTitle">
+        <div class="stage-heading"><div><span class="eyebrow">FIVE STEPS · CLICK TO INSPECT</span><h3 id="stageTitle">逐步查看这个 case</h3></div><p>缩略图来自当前 GDS 与运行结果；布线卡片局部放大首条路线并加粗高亮，点击后查看完整尺寸的矢量 GDS。提图步骤为 PNG。</p></div>
+        <div id="stageCards" class="stage-cards" aria-label="结构分析与布线步骤"></div>
+      </section>
+
+      <div class="hero-grid">
+        <section class="panel canvas-panel" aria-labelledby="canvasTitle">
+          <div class="panel-head"><div><span class="eyebrow">DETAIL VIEW · ZOOM & PAN</span><h3 id="canvasTitle">原始支撑</h3></div><span class="viewer-hint">滚轮缩放 · 拖动平移</span></div>
+          <div class="canvas-stage" id="canvasStage"><div class="canvas-grid"></div><div id="vectorViewport" class="vector-viewport" hidden></div><img id="mainImage" alt="所选 GDS 的几何预览" hidden draggable="false"><div id="canvasEmpty" class="canvas-empty"><span class="empty-glyph" aria-hidden="true">◎</span><strong>等待结构文件</strong><span>选择 GDS 后展示真实支撑层</span></div><div id="imageLoading" class="image-loading" hidden>正在读取视图…</div><div class="zoom-controls" aria-label="视图缩放"><button id="zoomIn" type="button" title="放大">＋</button><button id="zoomOut" type="button" title="缩小">－</button><button id="zoomReset" type="button" title="重置视图">适合窗口</button></div></div>
+          <div class="canvas-caption"><span id="viewDescription">GDS 支撑层 · 原始矢量轮廓</span><span id="canvasSource">—</span></div>
+        </section>
+
+        <section class="panel insight-panel" aria-labelledby="insightTitle">
+          <div class="panel-head"><div><span class="eyebrow">02 / READOUT</span><h3 id="insightTitle">结构读数</h3></div><span id="detailStatus" class="subtle-status">等待选择</span></div>
+          <div class="metric-grid"><div class="metric"><span>支撑孔洞</span><strong id="holeMetric">—</strong></div><div class="metric"><span>支撑连通块</span><strong id="componentMetric">—</strong></div><div class="metric"><span>自动走廊</span><strong id="edgeMetric">—</strong></div><div class="metric"><span>候选出口</span><strong id="outletMetric">—</strong></div></div>
+          <div class="section-divider"></div>
+          <div class="label-row"><span>当前文件</span><span id="sizeLabel">—</span></div><p id="pathLabel" class="path-value">—</p>
+          <div class="label-row"><span>SHA-256</span><button id="copyHash" class="text-button" type="button" disabled>复制</button></div><p id="hashLabel" class="hash-value">—</p>
+          <div class="section-divider"></div>
+          <div class="label-row"><span>GDS 图层</span><span id="layerCount">—</span></div><div id="layerList" class="layer-list"><p class="muted-copy">选择文件后显示。</p></div>
+          <div class="support-selector"><label for="supportLayer">用于分析的支撑层</label><select id="supportLayer" aria-label="用于分析的支撑层" disabled></select><p id="layerReason">未知来源的 GDS 应确认支撑材料所在层。</p></div>
+        </section>
+      </div>
+
+      <div class="bottom-grid">
+        <section class="panel action-panel" aria-labelledby="runTitle">
+          <div class="panel-head"><div><span class="eyebrow">03 / PROCESS</span><h3 id="runTitle">布置与布线</h3></div><span id="runBadge" class="subtle-status">四边 Pad 联合布线</span></div>
+          <p class="panel-intro">按下方参数自动选择电极、几何门户、承载桥和四边实体 Pad；先尽量增加接通电极数，同数时优先靠近结构几何中心。只有完整网络通过 GDS 回读才计数。所有尺寸与间距可调整，求解及检查使用本次填写的规则。</p>
+          <div class="rules-grid">
+            <label>布线目标<select id="routingMode"><option value="four_side_pads">连接四边 Pad</option><option value="attached_islands">仅几何终端试布线</option></select></label>
+            <label>电极直径 <span>μm</span><input id="electrodeDiameter" type="number" step="any" value="30"></label>
+            <label>最小电极中心距 <span>mm</span><input id="minimumCenterSpacingMm" type="number" step="any" value="0.07" aria-describedby="centerSpacingHelp"></label>
+            <label>电极中心允许半径 <span>mm</span><input id="electrodeRegionRadiusMm" type="number" step="any" value="3" aria-describedby="electrodeRegionHelp"></label>
+            <label>导线宽度 <span>μm</span><input id="wireWidth" type="number" step="any" value="5"></label>
+            <label>网络间距 <span>μm</span><input id="spacing" type="number" step="any" value="4"></label>
+            <label>支撑余量 <span>μm</span><input id="margin" type="number" step="any" value="4"></label>
+            <label id="collectorClearanceField" hidden>几何终端模式宽区阈值 <span>μm</span><input id="collectorClearance" type="number" step="any" value="25"></label>
+          </div>
+          <p id="centerSpacingHelp" class="job-rules">默认 0.07 mm = 70 μm；0 表示不增加中心距约束，金属及衬底间距仍需满足工艺规则。</p>
+          <p id="electrodeRegionHelp" class="job-rules">电极中心须位于结构几何圆心周围的圆内；默认半径 3 mm，直径 6 mm。类器官直径 2–3 mm 时可填半径 1–1.5 mm。走线及 Pad 可在圆外。</p>
+          <p id="electrodeRegionResult" class="job-rules" aria-live="polite"></p>
+          <p class="job-rules">没有固定工艺下限：间距与支撑余量可设为 0，尺寸须大于 0。圆岛间距随网络间距变化；0 间距仍须保持各电极网络独立、无短接。</p>
+          <details id="padSettingsPanel" class="pad-settings-panel" open>
+            <summary>四边 Pad 几何参考尺寸 <small>可调整 · 不限定每边数量</small></summary>
+            <div class="rules-grid">
+              <label>起始外框边长 <span>mm</span><input id="padFrameSideMm" type="number" step="any" value="32"></label>
+              <label>Pad 沿边宽度 <span>mm</span><input id="padWidthMm" type="number" step="any" value="0.5"></label>
+              <label>Pad 径向长度 <span>mm</span><input id="padLengthMm" type="number" step="any" value="3"></label>
+              <label>Pad 中心节距 <span>mm</span><input id="padPitchMm" type="number" step="any" value="1"></label>
+              <label>数量增加时<select id="padSizingMode"><option value="expand_frame">保留 Pad 尺寸，自动扩框</option><option value="compact_then_expand">先缩小到下限，再扩框</option></select></label>
+              <label>最小 Pad 沿边宽度 <span>mm</span><input id="minimumPadWidthMm" type="number" step="any" value="0.5"></label>
+              <label>最小 Pad 径向长度 <span>mm</span><input id="minimumPadLengthMm" type="number" step="any" value="3"></label>
+            </div>
+            <p class="job-rules">Pad 数量等于接通的电极数。按四边最大需求动态调整尺寸、节距与外框；默认保留 0.5 × 3 mm。缩小模式受最小尺寸约束，每边连续排列，最终报告显示实际尺寸。允许缩小时，将最小宽/长设为工艺允许的下限；下限等于参考尺寸时只扩框。</p>
+          </details>
+          <div class="mode-row"><div><strong>几何出口</strong><p id="outletHelp">完整 Pad 模式只允许从原结构最外端窗口连接外部 Pad。</p></div><select id="outletMode" aria-label="几何出口"><option value="external_boundary">自动原结构最外端窗口</option><option value="auto_geometry">自动提取两类几何终端</option><option value="collector">仅宽汇集区</option><option value="open_tips">仅开放端点</option></select></div>
+          <div class="run-actions"><button id="runButton" class="primary-button" type="button" disabled><span>开始分析与试布线</span><span aria-hidden="true">↗</span></button><span id="runFootnote">任务在这台电脑计算，结果保存到工作目录；不同 GDS 可同时提交。</span></div>
+        </section>
+
+        <section class="panel result-panel" aria-labelledby="resultTitle">
+          <div class="panel-head"><div><span class="eyebrow">04 / OUTPUT</span><h3 id="resultTitle">运行结果</h3></div><span id="resultBadge" class="subtle-status">尚未运行</span></div>
+          <div id="resultEmpty" class="result-empty"><div class="result-line"></div><p>选择文件并启动分析后，这里显示提图、几何验证与下载结果。</p></div>
+          <div id="resultContent" hidden>
+            <div class="progress-header"><strong id="jobStage">排队中</strong><span id="jobPercent">0%</span></div><div class="progress-track"><span id="progressFill"></span></div><p id="jobMessage" class="job-message">—</p><p id="jobRules" class="job-rules">—</p>
+            <div id="resultMetrics" class="result-metrics" hidden><div><span id="lowerBoundLabel">已认证网络下界 L</span><strong id="lowerBound">—</strong></div><div><span id="upperBoundLabel">容量上界 U</span><strong id="upperBound">未证明</strong></div><div><span>GDS 回读范围</span><strong id="roundtripStatus">—</strong></div></div><p id="curveInfo" class="job-rules" hidden></p>
+            <div id="artifactList" class="artifact-list"></div>
+          </div>
+        </section>
+      </div>
+      <section class="panel distribution-panel" id="distributionPanel" aria-labelledby="distributionTitle">
+        <div class="panel-head"><div><span class="eyebrow">SPATIAL COVERAGE · FIXED TARGET</span><h3 id="distributionTitle">电极分布与覆盖</h3></div><span id="distributionBadge" class="subtle-status">等待结果</span></div>
+        <p class="distribution-intro">在同一个目标圆内评价最终电极布局。此处参数仅用于结果分析，不参与布线；目标圆包括没有支撑的空白区域。点击指标可查看公式、符号和计算精度。</p>
+        <div class="distribution-controls">
+          <label>目标圆半径 <span>mm</span><input id="assessmentRadiusMm" type="number" value="3" step="any"></label>
+          <label>目标圆心 X <span>mm</span><input id="assessmentCenterXmm" type="number" value="0" step="any"></label>
+          <label>目标圆心 Y <span>mm</span><input id="assessmentCenterYmm" type="number" value="0" step="any"></label>
+          <label>覆盖距离 ℓ <span>μm</span><input id="assessmentDistanceUm" type="number" value="100" step="any"></label>
+          <label>计算精度<select id="assessmentResolution"><option value="192">快速 · 192 × 192</option><option value="384" selected>标准 · 384 × 384</option><option value="768">精细 · 768 × 768</option></select></label>
+        </div>
+        <div class="distribution-actions"><button id="assessmentApply" class="secondary-button" type="button" disabled>计算 / 更新评价</button><button id="assessmentUseCenter" class="text-button" type="button" disabled>取当前结构圆心</button><span>这组区域参数跨任务保留，不跟随放置半径变化。</span></div>
+        <p id="distributionStatus" class="distribution-status" role="status" aria-live="polite">选择一个已完成的任务，即可评价已有布局，无需重新布线。</p>
+        <div id="distributionContent" hidden>
+          <p id="distributionTarget" class="distribution-target"></p>
+          <div class="distribution-metrics">
+            <div class="distribution-count"><span>评价电极数 N</span><strong id="distributionCount">—</strong><small id="distributionInside">—</small></div>
+            <button class="distribution-metric" type="button" data-formula="nearest"><span>最近邻间距变异系数</span><strong id="distributionCV">—</strong><small id="distributionNNDetail">—</small><em>公式与说明 ↗</em></button>
+            <button class="distribution-metric" type="button" data-formula="maximum"><span>最大未覆盖距离 h</span><strong id="distributionMaximum">—</strong><small id="distributionMaximumDetail">—</small><em>公式与说明 ↗</em></button>
+            <button class="distribution-metric" type="button" data-formula="coverage"><span id="distributionCoverageLabel">指定距离覆盖率 C(ℓ)</span><strong id="distributionCoverage">—</strong><small id="distributionCoverageDetail">—</small><em>公式与说明 ↗</em></button>
+          </div>
+          <div class="distribution-plots">
+            <section class="distribution-plot"><div class="distribution-plot-heading"><h4>覆盖率曲线</h4><button class="text-button" type="button" data-formula="coverage">怎样读图？</button></div><div id="coverageCurve" class="coverage-curve" role="img" aria-label="覆盖率随电极中心距离变化的曲线"></div><div id="coverageCurveLegend" class="coverage-legend"></div><p>实线为面积加权估计，阴影为采样误差区间；横轴范围由固定目标半径决定。悬停查看覆盖率。</p><output id="coverageHover" class="plot-readout">—</output></section>
+            <section class="distribution-plot"><div class="distribution-plot-heading"><h4>最近电极距离热图</h4><button class="text-button" type="button" data-formula="maximum">怎样读图？</button></div><div class="heatmap-wrap"><canvas id="distributionHeatmap" aria-label="目标圆内到最近电极的距离热图"></canvas></div><div class="heatmap-legend"><span>0</span><i></i><span id="heatmapScale">—</span></div><p>白点为目标圆内电极，× 为最远采样点；越偏黄色，距离越大。全圆参与评价，颜色标尺在同一区域的比较中保持一致。</p><output id="heatmapHover" class="plot-readout">移动鼠标查看位置与距离</output></section>
+          </div>
+          <p id="distributionAccuracy" class="distribution-accuracy"></p>
+          <div class="distribution-actions"><button id="assessmentAddComparison" class="secondary-button" type="button">加入本组比较</button><button id="assessmentDownload" class="text-button" type="button">下载评价 JSON</button><button id="assessmentClearComparison" class="text-button" type="button">清空比较</button></div>
+          <p id="distributionComparisonNote" class="distribution-status"></p>
+          <div class="distribution-table-wrap"><table class="distribution-table"><thead><tr><th>布局 / 任务</th><th>电极数 N</th><th>圆内电极</th><th>最近邻 CV</th><th>最大未覆盖距离</th><th>覆盖率</th></tr></thead><tbody id="distributionComparisonRows"></tbody></table></div>
+        </div>
+      </section>
+      <section class="panel analysis-panel" aria-labelledby="analysisTitle">
+        <div class="panel-head"><div><span class="eyebrow">05 / INTERPRETATION</span><h3 id="analysisTitle">几何分析说明</h3></div><span id="analysisBadge" class="subtle-status">等待文件</span></div>
+        <div id="analysisEmpty" class="analysis-empty">选择结构后，这里解释图层、拓扑检验、可放区、候选出口及路由结论。</div>
+        <div id="analysisContent" class="analysis-content" hidden>
+          <div class="analysis-story"><div><span class="step-index">01</span><strong>支撑与图层</strong><p id="supportExplanation">—</p></div><div><span class="step-index">02</span><strong>拓扑与走廊</strong><p id="topologyExplanation">—</p></div><div><span class="step-index">03</span><strong>电极与出口</strong><p id="placementExplanation">—</p></div><div><span class="step-index">04</span><strong>路由与容量</strong><p id="routingExplanation">—</p></div></div>
+          <div class="analysis-data"><div><span id="electrodeAreaLabel">电极中心可行区</span><strong id="electrodeArea">—</strong></div><div><span id="legalCorridorsLabel">合法走廊</span><strong id="legalCorridors">—</strong></div><div><span>节点窗口</span><strong id="junctionWindows">—</strong></div><div><span>图孔洞一致性</span><strong id="topologyMatch">—</strong></div></div>
+        </div>
+      </section>
+      <div class="scope-note"><span class="scope-dot"></span><p id="scopeText"><strong>结果边界</strong> 完整 Pad 模式的 L 只统计 GDS 回读确认的电极—专属 Pad 网络；有限候选的求解值并非连续几何最优值。</p></div>
+    </section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="distributionFormulaDialog" class="formula-dialog" aria-labelledby="distributionFormulaTitle"><div class="formula-dialog-head"><h3 id="distributionFormulaTitle">指标公式</h3><button id="distributionFormulaClose" type="button" aria-label="关闭公式说明">×</button></div><div id="distributionFormulaBody" class="formula-dialog-body"></div></dialog>
+  <script src="/vendor/katex/katex.min.js" defer></script>
+  <script src="/distribution.js" defer></script>
+  <script src="/vector-viewer.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>

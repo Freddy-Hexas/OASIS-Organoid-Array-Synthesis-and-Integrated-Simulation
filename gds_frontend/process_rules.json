@@ -1,0 +1,13 @@
+{
+  "electrode_diameter_um": 30.0,
+  "minimum_center_spacing_um": 70.0,
+  "electrode_region_radius_um": 3000.0,
+  "wire_width_um": 5.0,
+  "spacing_um": 4.0,
+  "margin_um": 4.0,
+  "collector_clearance_um": 25.0,
+  "first_pitch_um": 2.0,
+  "minimum_pitch_um": 0.5,
+  "width_sample_step_um": 20.0,
+  "node_window_radius_um": 12.0
+}
