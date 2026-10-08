@@ -1,4 +1,4 @@
-# OASIS-Organoid-Array-Synthesis-and-Integrated-Simulation
+# OASIS: Organoid Array Synthesis and Integrated Simulation
 
 [English](README.en.md) · 中文
 
