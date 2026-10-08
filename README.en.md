@@ -1,8 +1,10 @@
-# GDS Electrode Layout and Routing Workbench
+# OASIS-Organoid-Array-Synthesis-and-Integrated-Simulation
 
 English · [中文](README.md)
 
-This tool reads a support structure from a GDS file. It places circular electrodes, makes metal routes, and connects each electrode to an external Pad. The browser shows the input, geometry analysis, and output. Each GDS file is one task. Different files can run at the same time.
+Repository: [OASIS](https://github.com/Freddy-Hexas/OASIS-Organoid-Array-Synthesis-and-Integrated-Simulation)
+
+OASIS reads a support structure from a GDS file. It places circular electrodes, makes metal routes, and connects each electrode to an external Pad. The browser shows the input, geometry analysis, and output. Each GDS file is one task. Different files can run at the same time.
 
 Version v4 is a separate package made from v2. It keeps the existing solver method and changes the input and output paths. It contains no previous task results, research reports, logs, or caches. All sample cases start without results.
 

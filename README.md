@@ -1,8 +1,10 @@
-# GDS 电极布局与布线工作台
+# OASIS-Organoid-Array-Synthesis-and-Integrated-Simulation
 
 [English](README.en.md) · 中文
 
-这个工具读取 GDS 中的支撑结构，自动放置圆形电极，生成导线，并安排外部四边 Pad。你可以在网页中查看输入、几何分析和输出。每个 GDS 对应一个任务。不同 GDS 可以同时运行。
+项目仓库：[OASIS](https://github.com/Freddy-Hexas/OASIS-Organoid-Array-Synthesis-and-Integrated-Simulation)
+
+OASIS 读取 GDS 中的支撑结构，自动放置圆形电极，生成导线，并安排外部四边 Pad。你可以在网页中查看输入、几何分析和输出。每个 GDS 对应一个任务。不同 GDS 可以同时运行。
 
 v4 是从 v2 整理出的独立运行目录。它保留现有求解方法，统一输入和输出路径。它不包含历史任务、研究文档、日志或缓存。首次启动时，所有案例均显示为待运行。
 
